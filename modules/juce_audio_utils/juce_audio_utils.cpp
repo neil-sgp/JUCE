@@ -31,8 +31,14 @@
  #error "Incorrect use of JUCE cpp file"
 #endif
 
-#include "../juce_core/native/juce_BasicNativeHeaders.h"
+#define JUCE_CORE_INCLUDE_JNI_HELPERS 1
+#define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
+
 #include "juce_audio_utils.h"
+
+#if JUCE_MODULE_AVAILABLE_juce_gui_extra
+ #include <juce_gui_extra/juce_gui_extra.h>
+#endif
 
 namespace juce
 {
@@ -45,16 +51,11 @@ namespace juce
 #include "gui/juce_AudioAppComponent.cpp"
 #include "players/juce_AudioProcessorPlayer.cpp"
 
-#if JUCE_MODULE_AVAILABLE_juce_gui_extra
- #include "../juce_gui_extra/embedding/juce_UIViewComponent.h"
-#endif
-
 #if JUCE_MAC
  #include "native/juce_mac_BluetoothMidiDevicePairingDialogue.mm"
 #elif JUCE_IOS
  #include "native/juce_ios_BluetoothMidiDevicePairingDialogue.mm"
 #elif JUCE_ANDROID
- #include "../juce_core/native/juce_android_JNIHelpers.h"
  #include "native/juce_android_BluetoothMidiDevicePairingDialogue.cpp"
 #elif JUCE_LINUX
  #include "native/juce_linux_BluetoothMidiDevicePairingDialogue.cpp"

@@ -25,8 +25,6 @@
 #ifndef JUCE_STANDALONEFILTERWINDOW_H_INCLUDED
 #define JUCE_STANDALONEFILTERWINDOW_H_INCLUDED
 
-extern AudioProcessor* JUCE_CALLTYPE createPluginFilter();
-
 //==============================================================================
 /**
     An object that creates and plays a standalone instance of an AudioProcessor.
@@ -74,14 +72,27 @@ public:
     //==============================================================================
     virtual void createPlugin()
     {
+
+      #if JUCE_MODULE_AVAILABLE_juce_audio_plugin_client
+        processor = ::createPluginFilterOfType (AudioProcessor::wrapperType_Standalone);
+      #else
         AudioProcessor::setTypeOfNextNewPlugin (AudioProcessor::wrapperType_Standalone);
         processor = createPluginFilter();
-        jassert (processor != nullptr); // Your createPluginFilter() function must return a valid object!
         AudioProcessor::setTypeOfNextNewPlugin (AudioProcessor::wrapperType_Undefined);
+      #endif
+        jassert (processor != nullptr); // Your createPluginFilter() function must return a valid object!
 
-        processor->setPlayConfigDetails (JucePlugin_MaxNumInputChannels,
-                                         JucePlugin_MaxNumOutputChannels,
-                                         44100, 512);
+        // try to disable sidechain and aux buses
+        const int numInBuses  = processor->busArrangement.inputBuses. size();
+        const int numOutBuses = processor->busArrangement.outputBuses.size();
+
+        for (int busIdx = 1; busIdx < numInBuses; ++busIdx)
+            processor->setPreferredBusArrangement (true, busIdx, AudioChannelSet::disabled());
+
+        for (int busIdx = 1; busIdx < numOutBuses; ++busIdx)
+            processor->setPreferredBusArrangement (false, busIdx, AudioChannelSet::disabled());
+
+        processor->setRateAndBufferSizeDetails(44100, 512);
     }
 
     virtual void deletePlugin()
